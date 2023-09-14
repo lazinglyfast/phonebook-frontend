@@ -14,11 +14,20 @@ const App = () => {
   const [query, setQuery] = useState(new RegExp())
   const [notification, setNotification] = useState(null)
 
+  const genericFailure = error => {
+    const notification = {
+      message: error.toString(),
+      status: "failure",
+    }
+    setNotification(notification)
+    setTimeout(() => setNotification(null), TIMEOUT)
+  }
+
   useEffect(() => {
     phonebookService
       .list()
-      .then(serverPerson => {
-        setPersons(serverPerson)
+      .then(serverPersons => {
+        setPersons(serverPersons)
       })
   }, [])
 
@@ -66,6 +75,7 @@ const App = () => {
           setNotification(notification)
           setTimeout(() => setNotification(null), TIMEOUT)
         })
+        .catch(genericFailure)
     }
   }
 
@@ -95,6 +105,7 @@ const App = () => {
           setNotification(notification)
           setTimeout(() => setNotification(null), TIMEOUT)
         })
+        .catch(genericFailure)
     }
   }
 
