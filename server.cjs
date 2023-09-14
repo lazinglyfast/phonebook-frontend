@@ -32,7 +32,14 @@ let persons = [
 
 const app = express()
 app.use(cors({ origin: true }))
-app.use(morgan("tiny"))
+
+morgan.token("data", (req) => {
+  if (req.method == "POST") {
+    return JSON.stringify(req.body)
+  }
+})
+const format = ":method :url :status :res[content-length] - :response-time ms :data"
+app.use(morgan(format))
 
 app.get("/", (_req, res) => {
   res.send("hello, world!")
