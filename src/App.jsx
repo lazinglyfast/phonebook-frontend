@@ -14,13 +14,17 @@ const App = () => {
   const [query, setQuery] = useState(new RegExp())
   const [notification, setNotification] = useState(null)
 
-  const genericFailure = error => {
-    const notification = {
-      message: error.toString(),
-      status: "failure",
-    }
+  const notify = notification => {
     setNotification(notification)
     setTimeout(() => setNotification(null), TIMEOUT)
+  }
+
+  const notifyFailure = error => {
+    notify({ message: error, status: "failure" })
+  }
+
+  const notifySuccess = message => {
+    notify({ message, status: "success" })
   }
 
   useEffect(() => {
@@ -43,22 +47,10 @@ const App = () => {
           setPersons(persons.map(p => {
             return p.id == fromServerPerson.id ? fromServerPerson : p
           }))
-          const notification = {
-            message: `Changed ${fromServerPerson.name}'s phone number to ${fromServerPerson.number}`,
-            status: "success",
-          }
-          setNotification(notification)
-          setTimeout(() => setNotification(null), TIMEOUT)
+          const message = `Changed ${fromServerPerson.name}'s phone number to ${fromServerPerson.number}`
+          notifySuccess(message)
         })
-        .catch(() => {
-          setPersons(persons.map(p => p.id != toServerPerson.id))
-          const notification = {
-            message: `Information of ${toServerPerson.name} has already been removed from server`,
-            status: "failure",
-          }
-          setNotification(notification)
-          setTimeout(() => setNotification(null), TIMEOUT)
-        })
+        .catch(error => notifyFailure(error.response.data.message))
     } else {
       const personObject = {
         name: newName,
@@ -68,14 +60,9 @@ const App = () => {
         .create(personObject)
         .then(serverPerson => {
           setPersons(persons.concat(serverPerson))
-          const notification = {
-            message: `Added ${serverPerson.name}`,
-            status: "success",
-          }
-          setNotification(notification)
-          setTimeout(() => setNotification(null), TIMEOUT)
+          notifySuccess(`Added ${serverPerson.name}`)
         })
-        .catch(genericFailure)
+        .catch(error => notifyFailure(error.response.data.message))
     }
   }
 
@@ -98,14 +85,9 @@ const App = () => {
         .delete(person)
         .then(() => {
           setPersons(persons.filter(p => p.id != person.id))
-          const notification = {
-            message: `Deleted ${person.name}`,
-            status: "success",
-          }
-          setNotification(notification)
-          setTimeout(() => setNotification(null), TIMEOUT)
+          notifySuccess(`Deleted ${person.name}`)
         })
-        .catch(genericFailure)
+        .catch(error => notifyFailure(error.response.data.message))
     }
   }
 
